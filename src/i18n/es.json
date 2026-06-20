@@ -14,6 +14,7 @@
     "select_account": "Seleccione la cuenta de envío:",
 
     "auto_close_config": "Cierre Automático",
+    "auto_send_on_start_label": "Enviar automáticamente al iniciar la app",
     "auto_close_label": "Cerrar automáticamente la app tras enviar el correo",
     "auto_close_delay_label": "Tiempo de espera antes del cierre (segundos):",
 

@@ -16,6 +16,7 @@ DEFAULT_CONFIG: dict = {
     "destinatarios": [],
     "asunto": "",
     "cuerpo": "",
+    "auto_send_on_start": True,
     "auto_close": True,
     "auto_close_delay": 60,
     "language": "es",

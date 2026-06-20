@@ -1,5 +1,5 @@
 # Software Design Document (SDD)
-## ReminderMailletYQuincena v2.5
+## ReminderMailletYQuincena v2.6
 
 **Proyecto:** Recordatorio automático de pago quincenal (Lety)  
 **Autor:** erickson558  
@@ -68,9 +68,13 @@ reminderpagolety.py          ← Entry point (mínimo, solo arranque)
                           │
                    ┌──────┴──────┐
                    │             │
-             load_config()    after(1000)
+             load_config()   auto_send_on_start?
                    │             │
-             Puebla GUI     _send_email()
+             Puebla GUI      si = true
+                                 │
+                            after(1000)
+                                 │
+                            _send_email()
                                  │
                         [Thread de envío]
                          pythoncom.CoInitialize()
@@ -137,6 +141,7 @@ reminderpagolety.py          ← Entry point (mínimo, solo arranque)
     "destinatarios": ["correo1@example.com", "correo2@example.com"],
     "asunto": "Reminder de Pagar a la Lety su quincena del Mes de [Mes Actual] de [año en numero]",
     "cuerpo": "Recordatorio de pagar quincena de Lety de [Mes Actual] de [año en numero]",
+    "auto_send_on_start": true,
     "auto_close": true,
     "auto_close_delay": 60,
     "language": "es"
@@ -279,3 +284,4 @@ Archivo de configuración: `matarreminder.xml`
 | 2.3 | 2026-06-20 | Se cambia la asignación de destinatarios en Outlook a Recipients.Add con resolución explícita para evitar que se pierdan direcciones al usar mail.To |
 | 2.4 | 2026-06-20 | Se amplía el reemplazo de placeholders para aliases entre corchetes basados en la fecha local del PC y se documenta la compilación dejando el `.exe` en la raíz del proyecto |
 | 2.5 | 2026-06-20 | Se difiere la actualización de la barra de estado hasta que el widget exista para evitar el `AttributeError` al cargar cuentas de Outlook durante la construcción inicial de la GUI |
+| 2.6 | 2026-06-20 | Se agrega un flag persistente y checkbox en la GUI para habilitar o deshabilitar el envío automático al iniciar la aplicación |

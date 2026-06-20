@@ -5,6 +5,7 @@
     ],
     "asunto": "Reminder de Pagar a la Lety su quincena del Mes de [Mes Actual] de [año en numero]",
     "cuerpo": "Recordatorio de pagar quincena de Lety de [Mes Actual] de [año en numero]",
+    "auto_send_on_start": true,
     "auto_close": true,
     "auto_close_delay": 60,
     "language": "es"

@@ -82,6 +82,7 @@ class TestReminderAppRecipients(unittest.TestCase):
         app._text_body = FakeText("Cuerpo")
         app._combobox_account = FakeEntry("sender@example.com")
         app._btn_send = MagicMock()
+        app._auto_send_on_start_var = FakeVar(True)
         app._auto_close_var = FakeVar(True)
         app._delay_var = FakeVar("60")
         app._lang_var = FakeVar("es")
@@ -134,7 +135,28 @@ class TestReminderAppRecipients(unittest.TestCase):
 
         saved_config = mock_save_config.call_args.args[0]
         self.assertEqual(saved_config["destinatarios"], ["gui1@example.com", "gui2@example.com"])
+        self.assertTrue(saved_config["auto_send_on_start"])
         self.assertEqual(app.config["destinatarios"], ["gui1@example.com", "gui2@example.com"])
+
+    def test_schedule_auto_send_on_start_enabled(self):
+        app = ReminderApp.__new__(ReminderApp)
+        app.root = MagicMock()
+        app.config = {"auto_send_on_start": True}
+        app._send_email = MagicMock()
+
+        app._schedule_auto_send_on_start()
+
+        app.root.after.assert_called_once_with(1000, app._send_email)
+
+    def test_schedule_auto_send_on_start_disabled(self):
+        app = ReminderApp.__new__(ReminderApp)
+        app.root = MagicMock()
+        app.config = {"auto_send_on_start": False}
+        app._send_email = MagicMock()
+
+        app._schedule_auto_send_on_start()
+
+        app.root.after.assert_not_called()
 
     def test_update_status_before_status_bar_exists_is_deferred(self):
         app = ReminderApp.__new__(ReminderApp)

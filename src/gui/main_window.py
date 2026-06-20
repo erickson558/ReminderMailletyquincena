@@ -10,7 +10,7 @@ Características:
   - Envío de correo en hilo separado para evitar que la GUI se congele.
   - Manejo correcto de COM en hilos (pythoncom.CoInitialize / CoUninitialize).
   - Logging de todos los eventos relevantes.
-  - Auto-envío 1 segundo después del inicio (comportamiento del Task Scheduler).
+  - Auto-envío opcional 1 segundo después del inicio (comportamiento configurable para Task Scheduler).
 """
 import logging
 import os
@@ -64,7 +64,7 @@ class ReminderApp:
           2. Aplica el idioma.
           3. Construye la interfaz.
           4. Pobla los campos con los valores de la configuración.
-          5. Programa el auto-envío a 1 segundo del inicio.
+          5. Programa el auto-envío a 1 segundo del inicio si está habilitado.
         """
         self.root = root
         self.config = load_config()
@@ -77,9 +77,7 @@ class ReminderApp:
         self._build_ui()
         self._populate_fields()
 
-        # Auto-envío: preserva el comportamiento original del Task Scheduler.
-        # Se dispara 1 segundo después de que la ventana es visible y estable.
-        self.root.after(1000, self._send_email)
+        self._schedule_auto_send_on_start()
 
     # -----------------------------------------------------------------------
     # Construcción de la interfaz
@@ -204,11 +202,22 @@ class ReminderApp:
         thread.start()
 
     def _build_auto_close_section(self) -> None:
-        """Sección de configuración del cierre automático después de enviar."""
+        """Sección de configuración del envío al iniciar y del cierre automático."""
         self._frame_autoclose = tk.LabelFrame(
             self.root, text=t("auto_close_config"), font=("Segoe UI", 9, "bold")
         )
         self._frame_autoclose.pack(padx=10, pady=6, fill="both")
+
+        self._auto_send_on_start_var = tk.BooleanVar(
+            value=self.config.get("auto_send_on_start", True)
+        )
+        self._chk_auto_send_on_start = tk.Checkbutton(
+            self._frame_autoclose,
+            text=t("auto_send_on_start_label"),
+            variable=self._auto_send_on_start_var,
+            font=("Segoe UI", 9),
+        )
+        self._chk_auto_send_on_start.pack(anchor="w", padx=10, pady=4)
 
         self._auto_close_var = tk.BooleanVar(value=self.config.get("auto_close", True))
         self._chk_autoclose = tk.Checkbutton(
@@ -303,6 +312,7 @@ class ReminderApp:
         self._frame_account.config(text=t("send_account"))
         self._lbl_account.config(text=t("select_account"))
         self._frame_autoclose.config(text=t("auto_close_config"))
+        self._chk_auto_send_on_start.config(text=t("auto_send_on_start_label"))
         self._chk_autoclose.config(text=t("auto_close_label"))
         self._lbl_delay.config(text=t("auto_close_delay_label"))
         self._btn_send.config(text=t("send_btn"))
@@ -456,6 +466,7 @@ class ReminderApp:
             "destinatarios": self._get_current_recipients(),
             "asunto": self._entry_subject.get(),
             "cuerpo": self._text_body.get("1.0", tk.END).strip(),
+            "auto_send_on_start": self._auto_send_on_start_var.get(),
             "auto_close": self._auto_close_var.get(),
             "auto_close_delay": delay,
             "language": self._lang_var.get(),
@@ -485,6 +496,16 @@ class ReminderApp:
     # -----------------------------------------------------------------------
     # Cuenta regresiva de cierre automático
     # -----------------------------------------------------------------------
+
+    def _schedule_auto_send_on_start(self) -> None:
+        """Programa el auto-envío inicial si la configuración lo habilita."""
+        if not self.config.get("auto_send_on_start", True):
+            logger.info("Auto-envío al iniciar deshabilitado por configuración")
+            return
+
+        # Preserva el comportamiento original del Task Scheduler.
+        # Se dispara 1 segundo después de que la ventana es visible y estable.
+        self.root.after(1000, self._send_email)
 
     def _start_countdown(self, seconds: int) -> None:
         """Inicia la cuenta regresiva que cierra la app al llegar a cero."""
