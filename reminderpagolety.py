@@ -5,7 +5,7 @@ Punto de entrada de la aplicación ReminderMailletYQuincena.
 Este archivo es intencionalmente mínimo: solo ajusta el path y arranca la GUI.
 
 Para compilar con PyInstaller:
-    pyinstaller reminder.spec
+    pyinstaller --noconfirm --clean --distpath . --workpath build/pyinstaller reminder.spec
 
 Para ejecutar en modo desarrollo:
     python reminderpagolety.py

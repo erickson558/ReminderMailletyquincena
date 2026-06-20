@@ -12,6 +12,7 @@ FIX Hotmail/Outlook.com:
 """
 import datetime
 import logging
+import re
 from typing import List, Tuple
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,35 @@ _MESES_ES: dict = {
     5: "mayo",    6: "junio",   7: "julio",    8: "agosto",
     9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre",
 }
+
+_PLACEHOLDER_VALUES: dict[str, callable] = {
+    "mesactual": lambda month_name, year: month_name,
+    "mesanterior": lambda month_name, year: month_name,
+    "mesanteriorenletras": lambda month_name, year: month_name,
+    "mesdepago": lambda month_name, year: month_name,
+    "añoennumero": lambda month_name, year: str(year),
+    "anoennumero": lambda month_name, year: str(year),
+    "añodelmesdepago": lambda month_name, year: str(year),
+    "anodelmesdepago": lambda month_name, year: str(year),
+}
+
+
+def _normalize_placeholder_name(name: str) -> str:
+    """Normaliza placeholders para soportar alias con espacios y mayúsculas."""
+    normalized = name.strip().lower()
+    replacements = {
+        "á": "a",
+        "é": "e",
+        "í": "i",
+        "ó": "o",
+        "ú": "u",
+        "ñ": "n",
+    }
+
+    for source, target in replacements.items():
+        normalized = normalized.replace(source, target)
+
+    return re.sub(r"[^a-z0-9]", "", normalized)
 
 
 def _normalize_recipients(recipients: List[str]) -> List[str]:
@@ -84,8 +114,8 @@ def _assign_recipients(mail, recipients: List[str]) -> Tuple[bool, str]:
 def replace_placeholders(text: str) -> str:
     """
     Sustituye los marcadores de posición en asunto/cuerpo:
-      [Mes Actual]     → nombre del mes anterior (mes de pago)
-      [año en numero]  → año correspondiente al mes anterior
+            [Mes Actual] / [Mes anterior en letras] → nombre del mes de pago
+            [año en numero]                         → año correspondiente al mes de pago
 
     Lógica: el pago corresponde al mes que acaba de terminar.
     Si estamos en enero, el mes de pago es diciembre del año anterior.
@@ -100,11 +130,18 @@ def replace_placeholders(text: str) -> str:
         prev_month, prev_year = month, year
 
     month_name = _MESES_ES[prev_month].capitalize()
-    return (
-        text
-        .replace("[Mes Actual]", month_name)
-        .replace("[año en numero]", str(prev_year))
-    )
+
+    def replace_match(match: re.Match[str]) -> str:
+        placeholder_name = match.group(1)
+        normalized_name = _normalize_placeholder_name(placeholder_name)
+        value_factory = _PLACEHOLDER_VALUES.get(normalized_name)
+
+        if value_factory is None:
+            return match.group(0)
+
+        return value_factory(month_name, prev_year)
+
+    return re.sub(r"\[([^\[\]]+)\]", replace_match, text)
 
 
 # ---------------------------------------------------------------------------

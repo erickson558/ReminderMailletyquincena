@@ -1,5 +1,5 @@
 # Software Design Document (SDD)
-## ReminderMailletYQuincena v2.0
+## ReminderMailletYQuincena v2.4
 
 **Proyecto:** Recordatorio automático de pago quincenal (Lety)  
 **Autor:** erickson558  
@@ -104,7 +104,7 @@ reminderpagolety.py          ← Entry point (mínimo, solo arranque)
 ### 3.2 `src/backend/email_sender.py`
 | Función | Responsabilidad |
 |---------|----------------|
-| `replace_placeholders(text)` | Sustituye `[Mes Actual]`/`[año en numero]` |
+| `replace_placeholders(text)` | Sustituye placeholders de fecha entre corchetes como `[Mes Actual]`, `[Mes anterior en letras]` y `[año en numero]` |
 | `get_outlook_accounts()` | Lista cuentas SMTP en Outlook |
 | `send_email_via_outlook(...)` | Envía correo via COM con manejo de errores |
 
@@ -146,8 +146,14 @@ reminderpagolety.py          ← Entry point (mínimo, solo arranque)
 ### 4.1 Placeholders disponibles
 | Placeholder | Valor en runtime |
 |-------------|-----------------|
-| `[Mes Actual]` | Nombre del mes anterior (mes de pago) |
+| `[Mes Actual]` | Nombre del mes de pago con inicial mayúscula |
+| `[Mes anterior en letras]` | Alias de `[Mes Actual]` |
+| `[Mes de pago]` | Alias de `[Mes Actual]` |
 | `[año en numero]` | Año del mes de pago |
+| `[Año del mes de pago]` | Alias de `[año en numero]` |
+
+Los placeholders se resuelven usando la fecha local del PC en el momento del envío.
+El parser tolera mayúsculas/minúsculas, espacios y tildes dentro del texto entre corchetes.
 
 ---
 
@@ -210,10 +216,11 @@ pip install pyinstaller pywin32
 
 ### 8.2 Compilar
 ```bash
-pyinstaller reminder.spec
+pyinstaller --noconfirm --clean --distpath . --workpath build/pyinstaller reminder.spec
 ```
 
-El ejecutable queda en `dist/reminderpagolety.exe`.
+El ejecutable queda en `./reminderpagolety.exe`, junto a `config.json` y `reminderpagolety.py`.
+Esto evita desalinear la ruta de ejecución con `get_base_path()` al correr la versión compilada.
 
 ### 8.3 `reminder.spec` — puntos clave
 - `scripts`: `['reminderpagolety.py']`
@@ -270,3 +277,4 @@ Archivo de configuración: `matarreminder.xml`
 | 2.1 | 2026-06-20 | Se corrige el envío para conservar destinatarios que coinciden con la cuenta emisora, se normalizan duplicados y se actualizan las pruebas |
 | 2.2 | 2026-06-20 | Se centraliza la lectura de destinatarios desde la GUI y se agregan pruebas para agregar, eliminar, guardar y enviar usando la lista visible |
 | 2.3 | 2026-06-20 | Se cambia la asignación de destinatarios en Outlook a Recipients.Add con resolución explícita para evitar que se pierdan direcciones al usar mail.To |
+| 2.4 | 2026-06-20 | Se amplía el reemplazo de placeholders para aliases entre corchetes basados en la fecha local del PC y se documenta la compilación dejando el `.exe` en la raíz del proyecto |

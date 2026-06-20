@@ -1,8 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
 #
 # reminder.spec — Configuración de compilación PyInstaller
-# Para compilar: pyinstaller reminder.spec
-# Resultado:     dist/reminderpagolety.exe
+# Para compilar: pyinstaller --noconfirm --clean --distpath . --workpath build/pyinstaller reminder.spec
+# Resultado:     .\reminderpagolety.exe
 
 a = Analysis(
     ['reminderpagolety.py'],

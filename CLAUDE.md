@@ -40,8 +40,8 @@ python reminderpagolety.py
 
 ```bash
 pip install pyinstaller pywin32
-pyinstaller reminder.spec
-# Ejecutable en: dist/reminderpagolety.exe
+pyinstaller --noconfirm --clean --distpath . --workpath build/pyinstaller reminder.spec
+# Ejecutable en: ./reminderpagolety.exe
 ```
 
 ## Dependencias

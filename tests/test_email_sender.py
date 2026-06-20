@@ -56,6 +56,22 @@ class TestReplacePlaceholders(unittest.TestCase):
             result = replace_placeholders(text)
         self.assertEqual(result, "Junio Junio 2025")
 
+    def test_supports_aliases_with_spaces_and_case(self):
+        """Debe reconocer aliases escritos entre corchetes con espacios y mayúsculas."""
+        with patch("src.backend.email_sender.datetime") as mock_dt:
+            mock_dt.datetime.now.return_value = datetime.datetime(2025, 6, 20)
+            text = "Pago [Mes anterior en letras] de [Año en Numero]"
+            result = replace_placeholders(text)
+        self.assertEqual(result, "Pago Junio de 2025")
+
+    def test_unknown_placeholders_are_left_untouched(self):
+        """Los marcadores no soportados deben conservarse para no romper plantillas."""
+        with patch("src.backend.email_sender.datetime") as mock_dt:
+            mock_dt.datetime.now.return_value = datetime.datetime(2025, 6, 20)
+            text = "Pago [Mes de pago] [variable_desconocida]"
+            result = replace_placeholders(text)
+        self.assertEqual(result, "Pago Junio [variable_desconocida]")
+
 
 # ---------------------------------------------------------------------------
 # Pruebas de send_email_via_outlook (con mock de win32com)
