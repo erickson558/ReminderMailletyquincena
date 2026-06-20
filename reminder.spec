@@ -22,7 +22,6 @@ a = Analysis(
         'win32com.server',
         'pythoncom',
         'pywintypes',
-        'pkg_resources.py2_warn',
     ],
     hookspath=[],
     hooksconfig={},

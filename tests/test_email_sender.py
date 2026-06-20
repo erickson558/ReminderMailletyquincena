@@ -64,6 +64,18 @@ class TestReplacePlaceholders(unittest.TestCase):
 class TestSendEmailViaOutlook(unittest.TestCase):
     """Pruebas de la función de envío usando un mock de Outlook COM."""
 
+    @staticmethod
+    def _patch_win32_modules(mock_outlook):
+        """Simula la importación dinámica de win32com.client dentro del backend."""
+        mock_client = MagicMock()
+        mock_client.Dispatch.return_value = mock_outlook
+        mock_win32com = MagicMock()
+        mock_win32com.client = mock_client
+        return patch.dict(
+            "sys.modules",
+            {"win32com": mock_win32com, "win32com.client": mock_client},
+        )
+
     def _make_mock_outlook(self, smtp_address: str) -> MagicMock:
         """Crea un mock de la aplicación Outlook con una cuenta configurada."""
         mock_account = MagicMock()
@@ -85,15 +97,13 @@ class TestSendEmailViaOutlook(unittest.TestCase):
         mock_dt.datetime.now.return_value = datetime.datetime(2025, 5, 15)
 
         mock_outlook = self._make_mock_outlook("sender@example.com")
-        with patch.dict("sys.modules", {"win32com": MagicMock(), "win32com.client": MagicMock()}):
-            with patch("src.backend.email_sender.win32") as mock_win32_client:
-                mock_win32_client.Dispatch.return_value = mock_outlook
-                success, msg = send_email_via_outlook(
-                    recipients=["recipient@example.com"],
-                    subject="Test [Mes Actual]",
-                    body="Body [año en numero]",
-                    sender_account="sender@example.com",
-                )
+        with self._patch_win32_modules(mock_outlook):
+            success, msg = send_email_via_outlook(
+                recipients=["recipient@example.com"],
+                subject="Test [Mes Actual]",
+                body="Body [año en numero]",
+                sender_account="sender@example.com",
+            )
         self.assertTrue(success)
 
     def test_no_pywin32(self):
@@ -110,40 +120,51 @@ class TestSendEmailViaOutlook(unittest.TestCase):
         self.assertFalse(success)
         self.assertIn("pywin32", msg.lower())
 
-    def test_filters_sender_from_recipients(self):
-        """La cuenta emisora debe eliminarse de la lista de destinatarios."""
+    def test_keeps_sender_in_recipients(self):
+        """La cuenta emisora también puede figurar como destinatario."""
         mock_outlook = self._make_mock_outlook("sender@example.com")
         mock_mail = mock_outlook.CreateItem.return_value
 
-        with patch.dict("sys.modules", {"win32com": MagicMock(), "win32com.client": MagicMock()}):
-            with patch("src.backend.email_sender.win32") as mock_win32_client:
-                mock_win32_client.Dispatch.return_value = mock_outlook
-                send_email_via_outlook(
-                    recipients=["sender@example.com", "other@example.com"],
-                    subject="Test",
-                    body="Body",
-                    sender_account="sender@example.com",
-                )
+        with self._patch_win32_modules(mock_outlook):
+            send_email_via_outlook(
+                recipients=["sender@example.com", "other@example.com"],
+                subject="Test",
+                body="Body",
+                sender_account="sender@example.com",
+            )
 
-        # mail.To solo debe contener el destinatario que no es la cuenta emisora
-        assigned_to = mock_mail.To
-        if assigned_to:  # Si el mock capturó la asignación
-            self.assertNotIn("sender@example.com", str(assigned_to))
+        self.assertEqual(mock_mail.To, "sender@example.com; other@example.com")
 
-    def test_empty_recipients_after_filter(self):
-        """Si todos los destinatarios son la cuenta emisora, debe retornar error."""
+    def test_single_recipient_matching_sender_is_valid(self):
+        """Una cuenta puede enviarse recordatorio a sí misma si está configurada."""
         mock_outlook = self._make_mock_outlook("sender@example.com")
+        mock_mail = mock_outlook.CreateItem.return_value
 
-        with patch.dict("sys.modules", {"win32com": MagicMock(), "win32com.client": MagicMock()}):
-            with patch("src.backend.email_sender.win32") as mock_win32_client:
-                mock_win32_client.Dispatch.return_value = mock_outlook
-                success, msg = send_email_via_outlook(
-                    recipients=["sender@example.com"],  # único y es el emisor
-                    subject="Test",
-                    body="Body",
-                    sender_account="sender@example.com",
-                )
-        self.assertFalse(success)
+        with self._patch_win32_modules(mock_outlook):
+            success, msg = send_email_via_outlook(
+                recipients=["sender@example.com"],  # único y es el emisor
+                subject="Test",
+                body="Body",
+                sender_account="sender@example.com",
+            )
+        self.assertTrue(success)
+        self.assertEqual(mock_mail.To, "sender@example.com")
+
+    def test_deduplicates_recipients_case_insensitive(self):
+        """Los destinatarios duplicados no deben repetirse en el correo."""
+        mock_outlook = self._make_mock_outlook("sender@example.com")
+        mock_mail = mock_outlook.CreateItem.return_value
+
+        with self._patch_win32_modules(mock_outlook):
+            success, msg = send_email_via_outlook(
+                recipients=["recipient@example.com", " Recipient@example.com ", "sender@example.com"],
+                subject="Test",
+                body="Body",
+                sender_account="sender@example.com",
+            )
+
+        self.assertTrue(success)
+        self.assertEqual(mock_mail.To, "recipient@example.com; sender@example.com")
 
 
 # ---------------------------------------------------------------------------

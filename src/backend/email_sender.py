@@ -7,7 +7,7 @@ Toda la lógica de email está aquí, completamente separada de la GUI.
 FIX Hotmail/Outlook.com:
   - Se llama pythoncom.CoInitialize() en hilos de trabajo para evitar errores COM.
   - Se detalla el error COM con código hexadecimal para facilitar el diagnóstico.
-  - Se valida que queden destinatarios después de filtrar la cuenta emisora.
+    - Se valida y normaliza la lista de destinatarios antes de enviar.
   - Se registran todos los eventos en el log de la aplicación.
 """
 import datetime
@@ -22,6 +22,26 @@ _MESES_ES: dict = {
     5: "mayo",    6: "junio",   7: "julio",    8: "agosto",
     9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre",
 }
+
+
+def _normalize_recipients(recipients: List[str]) -> List[str]:
+    """Limpia destinatarios vacíos y elimina duplicados preservando el orden."""
+    normalized: List[str] = []
+    seen: set[str] = set()
+
+    for recipient in recipients:
+        clean_recipient = recipient.strip()
+        if not clean_recipient:
+            continue
+
+        lookup_key = clean_recipient.lower()
+        if lookup_key in seen:
+            continue
+
+        seen.add(lookup_key)
+        normalized.append(clean_recipient)
+
+    return normalized
 
 
 # ---------------------------------------------------------------------------
@@ -137,14 +157,12 @@ def send_email_via_outlook(
             logger.error(msg)
             return False, msg
 
-        # Filtrar la cuenta emisora de la lista de destinatarios
-        # (evita que Outlook rechace el correo al detectar un bucle de auto-envío)
-        filtered = [r for r in recipients if r.strip().lower() != sender_account.lower()]
+        filtered = _normalize_recipients(recipients)
 
         if not filtered:
             msg = (
-                "Sin destinatarios válidos. Todos los correos coinciden "
-                "con la cuenta emisora o la lista está vacía."
+                "Sin destinatarios válidos. La lista está vacía o solo contiene "
+                "entradas en blanco."
             )
             logger.error(msg)
             return False, msg

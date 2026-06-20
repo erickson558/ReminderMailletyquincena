@@ -267,3 +267,4 @@ Archivo de configuración: `matarreminder.xml`
 |---------|-------|---------|
 | 1.0 | — | Versión inicial monolítica |
 | 2.0 | 2026-06-19 | Separación frontend/backend, multi-idioma, fix COM threading, logging, botón donación, tests |
+| 2.1 | 2026-06-20 | Se corrige el envío para conservar destinatarios que coinciden con la cuenta emisora, se normalizan duplicados y se actualizan las pruebas |
