@@ -84,9 +84,22 @@ class TestSendEmailViaOutlook(unittest.TestCase):
         mock_session = MagicMock()
         mock_session.Accounts = [mock_account]
 
+        mock_recipients = MagicMock()
+        mock_recipients.ResolveAll.return_value = True
+
+        def add_recipient(address):
+            mock_recipient = MagicMock()
+            mock_recipient.address = address
+            mock_recipient.Resolve.return_value = True
+            return mock_recipient
+
+        mock_recipients.Add.side_effect = add_recipient
+
         mock_outlook = MagicMock()
         mock_outlook.Session = mock_session
-        mock_outlook.CreateItem.return_value = MagicMock()
+        mock_mail = MagicMock()
+        mock_mail.Recipients = mock_recipients
+        mock_outlook.CreateItem.return_value = mock_mail
 
         return mock_outlook
 
@@ -133,7 +146,9 @@ class TestSendEmailViaOutlook(unittest.TestCase):
                 sender_account="sender@example.com",
             )
 
-        self.assertEqual(mock_mail.To, "sender@example.com; other@example.com")
+        added = [call.args[0] for call in mock_mail.Recipients.Add.call_args_list]
+        self.assertEqual(added, ["sender@example.com", "other@example.com"])
+        mock_mail.Recipients.ResolveAll.assert_called_once()
 
     def test_single_recipient_matching_sender_is_valid(self):
         """Una cuenta puede enviarse recordatorio a sí misma si está configurada."""
@@ -148,7 +163,7 @@ class TestSendEmailViaOutlook(unittest.TestCase):
                 sender_account="sender@example.com",
             )
         self.assertTrue(success)
-        self.assertEqual(mock_mail.To, "sender@example.com")
+        mock_mail.Recipients.Add.assert_called_once_with("sender@example.com")
 
     def test_deduplicates_recipients_case_insensitive(self):
         """Los destinatarios duplicados no deben repetirse en el correo."""
@@ -164,7 +179,33 @@ class TestSendEmailViaOutlook(unittest.TestCase):
             )
 
         self.assertTrue(success)
-        self.assertEqual(mock_mail.To, "recipient@example.com; sender@example.com")
+        added = [call.args[0] for call in mock_mail.Recipients.Add.call_args_list]
+        self.assertEqual(added, ["recipient@example.com", "sender@example.com"])
+
+    def test_returns_error_when_outlook_cannot_resolve_recipient(self):
+        """Si Outlook no resuelve un destinatario, el envío debe fallar antes de Send()."""
+        mock_outlook = self._make_mock_outlook("sender@example.com")
+        mock_mail = mock_outlook.CreateItem.return_value
+
+        def add_recipient(address):
+            mock_recipient = MagicMock()
+            mock_recipient.Resolve.return_value = address != "erickson558@hotmail.com"
+            return mock_recipient
+
+        mock_mail.Recipients.Add.side_effect = add_recipient
+        mock_mail.Recipients.ResolveAll.return_value = False
+
+        with self._patch_win32_modules(mock_outlook):
+            success, msg = send_email_via_outlook(
+                recipients=["ok@example.com", "erickson558@hotmail.com"],
+                subject="Test",
+                body="Body",
+                sender_account="sender@example.com",
+            )
+
+        self.assertFalse(success)
+        self.assertIn("erickson558@hotmail.com", msg)
+        mock_mail.Send.assert_not_called()
 
 
 # ---------------------------------------------------------------------------

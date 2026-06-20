@@ -269,3 +269,4 @@ Archivo de configuración: `matarreminder.xml`
 | 2.0 | 2026-06-19 | Separación frontend/backend, multi-idioma, fix COM threading, logging, botón donación, tests |
 | 2.1 | 2026-06-20 | Se corrige el envío para conservar destinatarios que coinciden con la cuenta emisora, se normalizan duplicados y se actualizan las pruebas |
 | 2.2 | 2026-06-20 | Se centraliza la lectura de destinatarios desde la GUI y se agregan pruebas para agregar, eliminar, guardar y enviar usando la lista visible |
+| 2.3 | 2026-06-20 | Se cambia la asignación de destinatarios en Outlook a Recipients.Add con resolución explícita para evitar que se pierdan direcciones al usar mail.To |

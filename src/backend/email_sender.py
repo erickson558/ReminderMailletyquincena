@@ -44,6 +44,39 @@ def _normalize_recipients(recipients: List[str]) -> List[str]:
     return normalized
 
 
+def _assign_recipients(mail, recipients: List[str]) -> Tuple[bool, str]:
+    """Agrega y resuelve destinatarios en Outlook para evitar pérdidas al parsear mail.To."""
+    unresolved: List[str] = []
+
+    for recipient in recipients:
+        outlook_recipient = mail.Recipients.Add(recipient)
+        resolved = True
+
+        try:
+            resolved = bool(outlook_recipient.Resolve())
+        except Exception:
+            resolved = False
+
+        if not resolved:
+            unresolved.append(recipient)
+
+    try:
+        if hasattr(mail.Recipients, "ResolveAll") and not mail.Recipients.ResolveAll():
+            if not unresolved:
+                unresolved = list(recipients)
+    except Exception:
+        if not unresolved:
+            unresolved = list(recipients)
+
+    if unresolved:
+        msg = f"No se pudieron resolver estos destinatarios en Outlook: {unresolved}"
+        logger.error(msg)
+        return False, msg
+
+    logger.info(f"Destinatarios resueltos en Outlook: {recipients}")
+    return True, ""
+
+
 # ---------------------------------------------------------------------------
 # Función de sustitución de placeholders
 # ---------------------------------------------------------------------------
@@ -167,7 +200,10 @@ def send_email_via_outlook(
             logger.error(msg)
             return False, msg
 
-        mail.To = "; ".join(filtered)  # Outlook usa punto y coma como separador
+        recipients_ok, recipients_error = _assign_recipients(mail, filtered)
+        if not recipients_ok:
+            return False, recipients_error
+
         logger.info(f"Enviando a: {filtered}")
 
         # Enviar el correo a través de Outlook (usa la configuración SMTP de la cuenta)
