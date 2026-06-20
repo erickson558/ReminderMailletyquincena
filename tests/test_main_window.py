@@ -58,6 +58,20 @@ class FakeVar:
         return self.value
 
 
+class FakeLabel:
+    def __init__(self, *args, **kwargs):
+        self.kwargs = kwargs
+        self.pack_calls = []
+        self.config_calls = []
+
+    def pack(self, *args, **kwargs):
+        self.pack_calls.append((args, kwargs))
+
+    def config(self, **kwargs):
+        self.config_calls.append(kwargs)
+        self.kwargs.update(kwargs)
+
+
 class TestReminderAppRecipients(unittest.TestCase):
     def _make_app(self, recipients=None):
         app = ReminderApp.__new__(ReminderApp)
@@ -121,6 +135,31 @@ class TestReminderAppRecipients(unittest.TestCase):
         saved_config = mock_save_config.call_args.args[0]
         self.assertEqual(saved_config["destinatarios"], ["gui1@example.com", "gui2@example.com"])
         self.assertEqual(app.config["destinatarios"], ["gui1@example.com", "gui2@example.com"])
+
+    def test_update_status_before_status_bar_exists_is_deferred(self):
+        app = ReminderApp.__new__(ReminderApp)
+        app._status_label = None
+        app._pending_status = ("", "black")
+
+        app._update_status("Conectando...", "blue")
+
+        self.assertEqual(app._pending_status, ("Conectando...", "blue"))
+
+    @patch("src.gui.main_window.tk.Label", side_effect=FakeLabel)
+    def test_build_status_bar_replays_pending_status(self, mock_label):
+        app = ReminderApp.__new__(ReminderApp)
+        app.root = MagicMock()
+        app._status_label = None
+        app._pending_status = ("Conectando...", "blue")
+
+        app._build_status_bar()
+
+        self.assertIsNotNone(app._status_label)
+        self.assertEqual(
+            app._status_label.config_calls[-1],
+            {"text": "Conectando...", "fg": "blue"},
+        )
+        mock_label.assert_called_once()
 
 
 if __name__ == "__main__":

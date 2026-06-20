@@ -1,5 +1,5 @@
 # Software Design Document (SDD)
-## ReminderMailletYQuincena v2.4
+## ReminderMailletYQuincena v2.5
 
 **Proyecto:** Recordatorio automático de pago quincenal (Lety)  
 **Autor:** erickson558  
@@ -278,3 +278,4 @@ Archivo de configuración: `matarreminder.xml`
 | 2.2 | 2026-06-20 | Se centraliza la lectura de destinatarios desde la GUI y se agregan pruebas para agregar, eliminar, guardar y enviar usando la lista visible |
 | 2.3 | 2026-06-20 | Se cambia la asignación de destinatarios en Outlook a Recipients.Add con resolución explícita para evitar que se pierdan direcciones al usar mail.To |
 | 2.4 | 2026-06-20 | Se amplía el reemplazo de placeholders para aliases entre corchetes basados en la fecha local del PC y se documenta la compilación dejando el `.exe` en la raíz del proyecto |
+| 2.5 | 2026-06-20 | Se difiere la actualización de la barra de estado hasta que el widget exista para evitar el `AttributeError` al cargar cuentas de Outlook durante la construcción inicial de la GUI |

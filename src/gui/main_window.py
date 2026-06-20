@@ -68,6 +68,8 @@ class ReminderApp:
         """
         self.root = root
         self.config = load_config()
+        self._status_label = None
+        self._pending_status = ("", "black")
 
         # Aplicar idioma guardado en configuración
         set_language(self.config.get("language", "es"))
@@ -258,6 +260,9 @@ class ReminderApp:
             self.root, text="", bd=1, relief=tk.SUNKEN, anchor=tk.W, font=("Segoe UI", 9)
         )
         self._status_label.pack(side=tk.BOTTOM, fill=tk.X)
+        pending_message, pending_color = self._pending_status
+        if pending_message:
+            self._update_status(pending_message, pending_color)
 
     # -----------------------------------------------------------------------
     # Llenado de campos con datos de configuración
@@ -500,6 +505,11 @@ class ReminderApp:
 
     def _update_status(self, message: str, color: str = "black") -> None:
         """Actualiza el texto y color de la barra de estado inferior."""
+        self._pending_status = (message, color)
+        if self._status_label is None:
+            if message:
+                logger.debug(f"Status diferido → {message}")
+            return
         self._status_label.config(text=message, fg=color)
         if message:
             logger.debug(f"Status → {message}")
