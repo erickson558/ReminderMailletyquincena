@@ -25,6 +25,9 @@ env/
 *.suo
 *.user
 
+# Configuración con datos personales (correos, cuentas)
+config.json
+
 # Credenciales y entorno
 .env
 *.key
