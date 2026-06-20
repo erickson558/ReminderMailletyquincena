@@ -1,5 +1,5 @@
 # Software Design Document (SDD)
-## ReminderMailletYQuincena v2.6
+## ReminderMailletYQuincena v2.7
 
 **Proyecto:** Recordatorio automático de pago quincenal (Lety)  
 **Autor:** erickson558  
@@ -71,6 +71,8 @@ reminderpagolety.py          ← Entry point (mínimo, solo arranque)
              load_config()   auto_send_on_start?
                    │             │
              Puebla GUI      si = true
+                                 │
+                      esperar cuentas Outlook
                                  │
                             after(1000)
                                  │
@@ -285,3 +287,4 @@ Archivo de configuración: `matarreminder.xml`
 | 2.4 | 2026-06-20 | Se amplía el reemplazo de placeholders para aliases entre corchetes basados en la fecha local del PC y se documenta la compilación dejando el `.exe` en la raíz del proyecto |
 | 2.5 | 2026-06-20 | Se difiere la actualización de la barra de estado hasta que el widget exista para evitar el `AttributeError` al cargar cuentas de Outlook durante la construcción inicial de la GUI |
 | 2.6 | 2026-06-20 | Se agrega un flag persistente y checkbox en la GUI para habilitar o deshabilitar el envío automático al iniciar la aplicación |
+| 2.7 | 2026-06-20 | Se corrige el auto-envío al iniciar para que espere a que las cuentas de Outlook terminen de cargar antes de intentar enviar el correo |

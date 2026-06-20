@@ -143,20 +143,51 @@ class TestReminderAppRecipients(unittest.TestCase):
         app.root = MagicMock()
         app.config = {"auto_send_on_start": True}
         app._send_email = MagicMock()
+        app._auto_send_pending = False
 
         app._schedule_auto_send_on_start()
 
-        app.root.after.assert_called_once_with(1000, app._send_email)
+        self.assertTrue(app._auto_send_pending)
+        app.root.after.assert_not_called()
 
     def test_schedule_auto_send_on_start_disabled(self):
         app = ReminderApp.__new__(ReminderApp)
         app.root = MagicMock()
         app.config = {"auto_send_on_start": False}
         app._send_email = MagicMock()
+        app._auto_send_pending = False
 
         app._schedule_auto_send_on_start()
 
+        self.assertFalse(app._auto_send_pending)
         app.root.after.assert_not_called()
+
+    def test_on_accounts_loaded_schedules_auto_send_when_pending(self):
+        app = ReminderApp.__new__(ReminderApp)
+        app.root = MagicMock()
+        app._combobox_account = MagicMock()
+        app._update_status = MagicMock()
+        app._send_email = MagicMock()
+        app._auto_send_pending = True
+
+        app._on_accounts_loaded(["sender@example.com"])
+
+        app._combobox_account.current.assert_called_once_with(0)
+        app.root.after.assert_called_once_with(1000, app._send_email)
+        self.assertFalse(app._auto_send_pending)
+
+    def test_on_accounts_loaded_without_accounts_does_not_schedule_auto_send(self):
+        app = ReminderApp.__new__(ReminderApp)
+        app.root = MagicMock()
+        app._combobox_account = MagicMock()
+        app._update_status = MagicMock()
+        app._send_email = MagicMock()
+        app._auto_send_pending = True
+
+        app._on_accounts_loaded([])
+
+        app.root.after.assert_not_called()
+        self.assertTrue(app._auto_send_pending)
 
     def test_update_status_before_status_bar_exists_is_deferred(self):
         app = ReminderApp.__new__(ReminderApp)

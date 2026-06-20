@@ -70,6 +70,7 @@ class ReminderApp:
         self.config = load_config()
         self._status_label = None
         self._pending_status = ("", "black")
+        self._auto_send_pending = False
 
         # Aplicar idioma guardado en configuración
         set_language(self.config.get("language", "es"))
@@ -349,6 +350,9 @@ class ReminderApp:
             self._combobox_account.current(0)
             self._update_status("")          # Limpiar "Conectando..."
             logger.info(f"Cuentas cargadas en ComboBox: {cuentas}")
+            if self._auto_send_pending:
+                self._auto_send_pending = False
+                self.root.after(1000, self._send_email)
         else:
             self._update_status(
                 t("status_no_accounts", error="Verifica que Outlook esté abierto y configurado"),
@@ -498,14 +502,13 @@ class ReminderApp:
     # -----------------------------------------------------------------------
 
     def _schedule_auto_send_on_start(self) -> None:
-        """Programa el auto-envío inicial si la configuración lo habilita."""
+        """Marca el auto-envío inicial para ejecutarse cuando Outlook esté listo."""
         if not self.config.get("auto_send_on_start", True):
             logger.info("Auto-envío al iniciar deshabilitado por configuración")
             return
 
-        # Preserva el comportamiento original del Task Scheduler.
-        # Se dispara 1 segundo después de que la ventana es visible y estable.
-        self.root.after(1000, self._send_email)
+        self._auto_send_pending = True
+        logger.info("Auto-envío al iniciar pendiente hasta que carguen las cuentas de Outlook")
 
     def _start_countdown(self, seconds: int) -> None:
         """Inicia la cuenta regresiva que cierra la app al llegar a cero."""
