@@ -263,6 +263,10 @@ class ReminderApp:
     # Llenado de campos con datos de configuración
     # -----------------------------------------------------------------------
 
+    def _get_current_recipients(self) -> list[str]:
+        """Devuelve la lista actual de destinatarios mostrada en la GUI."""
+        return [email.strip() for email in self._listbox.get(0, tk.END) if email.strip()]
+
     def _populate_fields(self) -> None:
         """Puebla los widgets de la GUI con los valores cargados de config.json."""
         for email in self.config.get("destinatarios", []):
@@ -346,7 +350,7 @@ class ReminderApp:
         la GUI no se congele mientras Outlook procesa el correo.
         """
         # Recolectar y validar datos de la GUI
-        recipients = [e.strip() for e in self._listbox.get(0, tk.END) if e.strip()]
+        recipients = self._get_current_recipients()
         if not recipients:
             self._update_status(t("status_no_recipients"), "red")
             return
@@ -444,7 +448,7 @@ class ReminderApp:
             delay = 60
 
         new_config = {
-            "destinatarios": list(self._listbox.get(0, tk.END)),
+            "destinatarios": self._get_current_recipients(),
             "asunto": self._entry_subject.get(),
             "cuerpo": self._text_body.get("1.0", tk.END).strip(),
             "auto_close": self._auto_close_var.get(),
