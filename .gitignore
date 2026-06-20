@@ -1,0 +1,35 @@
+# Binarios compilados
+dist/
+build/
+*.exe
+*.spec.bak
+
+# Logs de ejecución
+*.log
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Credenciales y entorno
+.env
+*.key
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/

@@ -1,0 +1,40 @@
+{
+    "app_title": "Reminder – Pago Quincena (Lety)",
+    "language_label": "Idioma:",
+    "buy_beer_btn": "🍺 Invítame una Cerveza",
+
+    "recipients": "Destinatarios:",
+    "add_recipient": "Agregar",
+    "remove_recipient": "Eliminar",
+
+    "subject": "Asunto:",
+    "body": "Cuerpo del correo:",
+
+    "send_account": "Cuenta de Envío",
+    "select_account": "Seleccione la cuenta de envío:",
+
+    "auto_close_config": "Cierre Automático",
+    "auto_close_label": "Cerrar automáticamente la app tras enviar el correo",
+    "auto_close_delay_label": "Tiempo de espera antes del cierre (segundos):",
+
+    "send_btn": "Enviar",
+    "save_btn": "Guardar configuración",
+    "exit_btn": "Salir",
+
+    "dialog_add_recipient": "Agregar destinatario",
+    "dialog_add_recipient_prompt": "Ingrese el correo electrónico del destinatario:",
+
+    "status_connecting": "Conectando con Outlook...",
+    "status_recipient_added": "Destinatario agregado.",
+    "status_select_to_remove": "Seleccione un destinatario para eliminar.",
+    "status_recipient_removed": "Destinatario(s) eliminado(s).",
+    "status_config_saved": "Configuración guardada exitosamente.",
+    "status_config_error": "Error al guardar la configuración: {error}",
+    "status_no_recipients": "Agregue al menos un destinatario.",
+    "status_account_not_found": "No se encontró la cuenta de envío seleccionada.",
+    "status_no_accounts": "No se encontraron cuentas en Outlook: {error}",
+    "status_sent": "¡Correo enviado exitosamente!",
+    "status_send_error": "No se pudo enviar el correo. Error: {error}",
+    "status_closing": "Correo enviado. Cerrando en {seconds} segundos...",
+    "status_sending": "Enviando correo, espere..."
+}

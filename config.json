@@ -1,0 +1,12 @@
+{
+    "destinatarios": [
+        "osorio.albert@claro.com.gt",
+        "erickson007@gmail.com",
+        "systemsolutionie@gmail.com",
+        "erickson558@outlook.com"
+    ],
+    "asunto": "Reminder de Pagar a la Lety su quincena del Mes de [Mes Actual] de [año en numero]",
+    "cuerpo": "Recordatorio de pagar quincena de Lety de [Mes Actual] de [año en numero]",
+    "auto_close": true,
+    "auto_close_delay": 60
+}

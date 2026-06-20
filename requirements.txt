@@ -1,0 +1,8 @@
+# ReminderMailletYQuincena — Dependencias
+# Instalar con: pip install -r requirements.txt
+
+# Automatización COM de Microsoft Outlook (requerido en Windows)
+pywin32>=306
+
+# Herramienta de compilación a .exe (solo para desarrollo)
+pyinstaller>=6.0

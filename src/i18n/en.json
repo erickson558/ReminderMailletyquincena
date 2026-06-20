@@ -1,0 +1,40 @@
+{
+    "app_title": "Reminder – Biweekly Payment (Lety)",
+    "language_label": "Language:",
+    "buy_beer_btn": "🍺 Buy Me a Beer",
+
+    "recipients": "Recipients:",
+    "add_recipient": "Add",
+    "remove_recipient": "Remove",
+
+    "subject": "Subject:",
+    "body": "Email body:",
+
+    "send_account": "Sending Account",
+    "select_account": "Select sending account:",
+
+    "auto_close_config": "Auto-Close",
+    "auto_close_label": "Automatically close the app after sending",
+    "auto_close_delay_label": "Delay before closing (seconds):",
+
+    "send_btn": "Send",
+    "save_btn": "Save Configuration",
+    "exit_btn": "Exit",
+
+    "dialog_add_recipient": "Add recipient",
+    "dialog_add_recipient_prompt": "Enter the recipient's email address:",
+
+    "status_connecting": "Connecting to Outlook...",
+    "status_recipient_added": "Recipient added.",
+    "status_select_to_remove": "Select a recipient to remove.",
+    "status_recipient_removed": "Recipient(s) removed.",
+    "status_config_saved": "Configuration saved successfully.",
+    "status_config_error": "Error saving configuration: {error}",
+    "status_no_recipients": "Add at least one recipient.",
+    "status_account_not_found": "Selected sending account not found.",
+    "status_no_accounts": "No Outlook accounts found: {error}",
+    "status_sent": "Email sent successfully!",
+    "status_send_error": "Failed to send email. Error: {error}",
+    "status_closing": "Email sent. Closing in {seconds} seconds...",
+    "status_sending": "Sending email, please wait..."
+}
